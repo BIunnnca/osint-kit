@@ -1,18 +1,36 @@
-import sys
+"""
+Module dnsdumpster_scan – Recherche de sous-domaines / IP
+Utilisation :
+    python3 src/main.py --module dnsdumpster_scan --target example.com
+"""
+
+from argparse import ArgumentParser
 from dnsdumpster import DNSDumpsterAPI
 
-def run(target="example.com"):
-    results = DNSDumpsterAPI().search(target)
-    print("[+] Domaine analysé :", target)
-    for host in results['dns_records']['host']:
-        print(f"  - {host['domain']} ({host['ip']})")
 
+def run(target: str):
+    print(f"[+] Domaine analysé : {target}")
+    results = DNSDumpsterAPI().search(target)
+    hosts = results["dns_records"]["host"]
+    if not hosts:
+        print("[!] Aucun enregistrement trouvé.")
+        return
+    for h in hosts:
+        print(f"  • {h['domain']}  ({h['ip']})")
+
+
+# ----- point d’entrée appelé par OSINT-Kit ---------------------------
 def main(args_list=None):
     """
-    Point d’entrée appelé par OSINT-Kit.
-    Utilisation : --module dnsdumpster_scan --target example.com
+    args_list est fourni par OSINT-Kit ; si lancé isolément on récupère sys.argv.
     """
+    import sys
     if args_list is None:
-        args_list = []
-    target = args_list[args_list.index("--target")+1] if "--target" in args_list else "example.com"
-    run(target)
+        args_list = sys.argv[1:]
+
+    parser = ArgumentParser(description="Scan DNSDumpster")
+    parser.add_argument("--target", "-t", required=True,
+                        help="Domaine à analyser, ex : example.com")
+    args = parser.parse_args(args_list)
+
+    run(args.target)
