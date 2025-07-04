@@ -1,2 +1,17 @@
 requests
+python-telegram-bot[passport]>=21.0
+
+# --- OSINT / Analyse
+shodan
+python-whois
+dnsdumpster
 beautifulsoup4
+tqdm
+
+# --- ML / Torch
+torch==2.2.2+cpu      # GPU ? installe la version CUDA adaptée
+pytorch_pretrained_bert
+numpy
+pandas
+transformers
+scikit-learn
