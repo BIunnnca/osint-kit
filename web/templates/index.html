@@ -1,0 +1,62 @@
+maintenant je veu ajouter celui ci stp ; <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adversarial Attack Interface</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Adversarial Attack Interface</h1>
+    <form id="attack-form">
+        <label for="embedding_dim">Embedding Dimension:</label>
+        <input type="number" id="embedding_dim" name="embedding_dim" required><br><br>
+
+        <label for="grad_steps">Gradient Steps:</label>
+        <input type="number" id="grad_steps" name="grad_steps" required><br><br>
+
+        <label for="lr">Learning Rate:</label>
+        <input type="number" step="0.01" id="lr" name="lr" required><br><br>
+
+        <label for="batch_size">Batch Size:</label>
+        <input type="number" id="batch_size" name="batch_size" required><br><br>
+
+        <label for="population_size">Population Size:</label>
+        <input type="number" id="population_size" name="population_size" required><br><br>
+
+        <label for="mutation_rate">Mutation Rate:</label>
+        <input type="number" step="0.01" id="mutation_rate" name="mutation_rate" required><br><br>
+
+        <button type="submit">Run Attack</button>
+    </form>
+    <pre id="results"></pre>
+
+    <script>
+        document.getElementById('attack-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const data = {
+                embedding_dim: parseInt(document.getElementById('embedding_dim').value),
+                grad_steps: parseInt(document.getElementById('grad_steps').value),
+                lr: parseFloat(document.getElementById('lr').value),
+                batch_size: parseInt(document.getElementById('batch_size').value),
+                population_size: parseInt(document.getElementById('population_size').value),
+                mutation_rate: parseFloat(document.getElementById('mutation_rate').value)
+            };
+
+            fetch('/run_attack', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(results => {
+                document.getElementById('results').innerText = JSON.stringify(results, null, 2);
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    </script>
+</body>
+</html>
