@@ -1,46 +1,86 @@
 #!/usr/bin/env python3
 """
-attack_web – Interface Flask pour attaques adversariales
-Usage :
-    python3 src/main.py --module attack_web --host 0.0.0.0 --port 5000
+attack_web – Interface Flask « Adversarial Attack » pour OSINT-Kit
+
+Lancement direct :
+    python3 modules/attack_web.py --host 0.0.0.0 --port 8000
+
+Lancement via OSINT-Kit :
+    python3 src/main.py --module attack_web -- --host 0.0.0.0 --port 8000
 """
 
+from __future__ import annotations
+
+import argparse
+import json
+import os
 from pathlib import Path
-import argparse, json, random
-from flask import Flask, render_template, request, jsonify
 
-BASE_DIR = Path(__file__).resolve().parent.parent / "web"
-app = Flask(__name__,
-            template_folder=str(BASE_DIR / "templates"),
-            static_folder=str(BASE_DIR / "static"))
+from flask import Flask, jsonify, render_template, request
+
+# ─────────────────────────────────────────────
+#  Chemins (templates / static dans  « web/ »)
+# ─────────────────────────────────────────────
+BASE_DIR = Path(__file__).resolve().parent.parent
+TEMPLATES_DIR = BASE_DIR / "web" / "templates"
+STATIC_DIR = BASE_DIR / "web" / "static"
+
+app = Flask(
+    __name__,
+    template_folder=str(TEMPLATES_DIR),
+    static_folder=str(STATIC_DIR),
+)
 
 
+# ─────────────────────────────────────────────
+#  Routes
+# ─────────────────────────────────────────────
 @app.route("/")
 def index():
+    """Affiche la page HTML du formulaire."""
     return render_template("index.html")
 
 
 @app.route("/run_attack", methods=["POST"])
 def run_attack():
-    data = request.get_json(force=True)
+    """
+    Point d’API où l’on branchera la vraie logique d’attaque.
+    Pour l’instant : on renvoie simplement les paramètres reçus.
+    """
+    try:
+        cfg = request.get_json(force=True)
+    except Exception:
+        return jsonify({"error": "Invalid JSON payload"}), 400
 
-    # TODO : remplace ce bloc par ta vraie attaque
-    dummy_score = round(random.uniform(0, 1), 4)
-    results = {
+    # TODO : remplacer par votre pipeline d’attaque
+    dummy_results = {
         "status": "ok",
-        "params_received": data,
-        "success_rate": dummy_score,
-        "details": "Replace this with real attack results."
+        "details": "Attaque simulée – à implémenter",
+        "received_cfg": cfg,
     }
-    return jsonify(results)
+    return jsonify(dummy_results), 200
 
 
-def main(args_list=None):
-    parser = argparse.ArgumentParser(description="Serveur web d'attaque")
-    parser.add_argument("--host", default="127.0.0.1")
-    parser.add_argument("--port", type=int, default=5000)
-    args = parser.parse_args(args_list)
+# ─────────────────────────────────────────────
+#  Point d’entrée module
+# ─────────────────────────────────────────────
+def main(argv: list[str] | None = None):
+    """
+    Fonction appelée par OSINT-Kit :
+        module.main(remainder)
+    `argv` reçoit exactement la liste `remainder`.
+    """
+    parser = argparse.ArgumentParser(
+        prog="attack_web",
+        description="Lance le serveur Flask Attack-Web",
+        allow_abbrev=False,
+    )
+    parser.add_argument("--host", default="127.0.0.1", help="Adresse d’écoute Flask")
+    parser.add_argument("--port", type=int, default=5000, help="Port d’écoute Flask")
+    args = parser.parse_args(argv)
 
+    print(f"[attack_web] Interface disponible sur http://{args.host}:{args.port}")
+    # debug=False pour éviter le reloader qui double les processus
     app.run(host=args.host, port=args.port, debug=False)
 
 
